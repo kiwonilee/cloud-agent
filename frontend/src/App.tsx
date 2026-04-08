@@ -929,7 +929,7 @@ const AuditSetupPage = ({ onStartAudit }: { onStartAudit: (projectId: string, sa
         data.forEach((r: any) => {
           if (r.default_value === 'N') {
             initial[r.id] = 'No';
-          } else if (r.default_value === 'OsS' || r.default_value === 'OoS') {
+          } else if (r.default_value === 'O') {
             initial[r.id] = 'Out of Scope';
           } else {
             initial[r.id] = 'Yes';
@@ -1084,6 +1084,7 @@ cat sa-key.json`} />
                       e.target.style.height = 'auto';
                       e.target.style.height = e.target.scrollHeight + 'px';
                     }}
+                    style={{ WebkitTextSecurity: 'disc' } as any}
                     className="w-full min-h-[160px] bg-surface-container-low border border-outline-variant/40 rounded-xl px-4 py-3 text-xs focus:outline-none focus:ring-2 focus:ring-primary/50 transition-all font-mono whitespace-pre resize-none overflow-hidden shadow-inner"
                   />
                 </div>
@@ -1096,14 +1097,17 @@ cat sa-key.json`} />
 
         {/* Right Column: Checklist Table */}
         <section className="xl:col-span-8 bg-surface border border-outline-variant/30 rounded-2xl overflow-hidden shadow-sm flex flex-col h-auto min-h-[800px]">
-          <div className="bg-surface-container-lowest border-b border-outline-variant/30 px-6 py-4 flex items-center gap-3 shrink-0">
-            <div className="w-8 h-8 rounded-lg bg-tertiary/10 flex items-center justify-center shrink-0">
-              <ShieldCheck className="w-4 h-4 text-tertiary" />
+          <div className="bg-surface-container-lowest border-b border-outline-variant/30 px-6 py-4 flex items-center justify-between shrink-0">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg bg-tertiary/10 flex items-center justify-center shrink-0">
+                <ShieldCheck className="w-4 h-4 text-tertiary" />
+              </div>
+              <div>
+                <h3 className="font-headline font-bold text-on-surface">Manual Checklist</h3>
+                <p className="text-xs text-on-surface-variant">Manually review and set status for each item based on your infrastructure environment.</p>
+              </div>
             </div>
-            <div>
-              <h3 className="font-headline font-bold text-on-surface">Manual Checklist</h3>
-              <p className="text-xs text-on-surface-variant">Manually review and set status for each item based on your infrastructure environment.</p>
-            </div>
+            <span className="font-mono bg-slate-100 px-2.5 py-1.5 rounded text-[11px] font-black text-slate-700 border border-outline-variant/30 shadow-sm">O : Out of Scope</span>
           </div>
           
           <div className="overflow-x-auto flex-1 bg-surface-container-lowest/30">
@@ -1161,7 +1165,7 @@ cat sa-key.json`} />
                           )}
                           title="Out of Scope"
                         >
-                          OoS
+                          O
                         </button>
                       </div>
                     </td>
@@ -1546,37 +1550,37 @@ const AuditLivePage = ({
 
   const evalResults = logs.filter(l => l.type === 'result');
 
-  // 3-way Status Calculation (Matched, Mismatched, Inconclusive)
+  // 3-way Status Calculation (Match, Mismatch, Skipped)
   const consistencyMap = rules.reduce((acc, rule) => {
     const res = evalResults.find(r => r.rule_id === rule.id);
     const userValue = (rule as any).user_status || 'Yes'; // 'Yes' | 'No' | 'Out of Scope'
     
-    if (userValue === 'Out of Scope') {
-      acc[rule.id] = 'Inconclusive';
+    if (userValue === 'Out of Scope' || userValue === 'O') {
+      acc[rule.id] = 'Skipped';
       return acc;
     }
 
     if (!res) {
-      acc[rule.id] = 'Inconclusive'; // 응답 대기 중
+      acc[rule.id] = 'Skipped'; // 응답 대기 중 (또는 임시 Unknown)
       return acc;
     }
 
     // 에이전트 판단 가공
     const uiStatus = res.status;
 
-    if (uiStatus === 'Matched' || uiStatus === 'PASS' || uiStatus === 'APPLIED') {
-      acc[rule.id] = 'Matched';
-    } else if (uiStatus === 'Mismatched' || uiStatus === 'FAIL' || uiStatus === 'NOT_APPLIED') {
-      acc[rule.id] = 'Mismatched';
+    if (uiStatus === 'Match' || uiStatus === 'PASS' || uiStatus === 'APPLIED') {
+      acc[rule.id] = 'Match';
+    } else if (uiStatus === 'Mismatch' || uiStatus === 'FAIL' || uiStatus === 'NOT_APPLIED') {
+      acc[rule.id] = 'Mismatch';
     } else {
-      acc[rule.id] = 'Inconclusive';
+      acc[rule.id] = 'Skipped';
     }
     return acc;
-  }, {} as Record<string, 'Matched' | 'Mismatched' | 'Inconclusive'>);
+  }, {} as Record<string, 'Match' | 'Mismatch' | 'Skipped'>);
 
-  const matchedCount = Object.values(consistencyMap).filter(v => v === 'Matched').length;
-  const mismatchedCount = Object.values(consistencyMap).filter(v => v === 'Mismatched').length;
-  const inconclusiveCount = Object.values(consistencyMap).filter(v => v === 'Inconclusive').length;
+  const matchedCount = Object.values(consistencyMap).filter(v => v === 'Match').length;
+  const mismatchedCount = Object.values(consistencyMap).filter(v => v === 'Mismatch').length;
+  const inconclusiveCount = Object.values(consistencyMap).filter(v => v === 'Skipped').length;
 
   return (
     <div className="animate-fadeIn space-y-6 pb-20 h-full flex flex-col">
@@ -1634,6 +1638,15 @@ const AuditLivePage = ({
 
             {/* Removed APPLIED / NOT APPLIED statistics */}
            </div>
+        </div>
+
+        {/* Guide Text for O and ? */}
+        <div className="bg-surface-container-lowest border border-outline-variant/30 rounded-xl p-3 px-5 flex items-center justify-between text-xs text-on-surface-variant font-medium tracking-tight">
+          <div className="flex items-center gap-6">
+            <span className="flex items-center gap-1.5"><span className="font-mono font-black text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded border border-outline-variant/30">O</span> : Out of Scope (범위 제외)</span>
+            <span className="flex items-center gap-1.5"><span className="font-mono font-black text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded border border-outline-variant/30">?</span> : Inconclusive (판단 불가 / 정보 부족)</span>
+          </div>
+          <span className="text-outline-variant">※ User Y/N 과 Agent Y/N 이 일치하면 Match, 다르면 Mismatch</span>
         </div>
 
         {/* List of Cards */}
@@ -1703,22 +1716,23 @@ const AuditLivePage = ({
                const hasContent = displayContent.trim().length > 0;
 
                const themeClass = isWaiting ? "border-outline-variant/20" :
-                 status === 'Matched' ? "border-emerald-500/20 bg-emerald-50/[0.03]" :
-                 status === 'Mismatched' ? "border-red-500/30 bg-red-50/[0.03]" :
+                 status === 'Match' ? "border-emerald-500/20 bg-emerald-50/[0.03]" :
+                   status === 'Mismatch' ? "border-red-500/30 bg-red-50/[0.03]" :
                  "border-slate-400/30 bg-slate-50/[0.03]"; // Inconclusive
 
                 return (
                   <div key={rule.id} className={cn("bg-surface border rounded-2xl overflow-hidden transition-all duration-300 shadow-sm relative", themeClass)}>
                      {!isWaiting && (
                          <div className={cn("absolute left-0 top-0 bottom-0 w-1.5", 
-                           status === 'Matched' ? "bg-emerald-600" : 
-                           status === 'Mismatched' ? "bg-red-600" : 
+                           status === 'Match' ? "bg-emerald-600" :
+                             status === 'Mismatch' ? "bg-red-600" :
+                               status === 'Mismatch' ? "bg-red-600" : 
                            "bg-slate-400")} />
                      )}
                      <div 
                       className={cn("w-full transition-colors",
-                        hasContent && status === 'Mismatched' ? "hover:bg-red-500/[0.04] cursor-pointer" :
-                        hasContent && status === 'Matched' ? "hover:bg-emerald-500/[0.04] cursor-pointer" :
+                        hasContent && status === 'Mismatch' ? "hover:bg-red-500/[0.04] cursor-pointer" :
+                          hasContent && status === 'Match' ? "hover:bg-emerald-500/[0.04] cursor-pointer" :
                         hasContent ? "hover:bg-slate-500/[0.04] cursor-pointer" : "")}
                        onClick={() => hasContent && setExpandedRules(p => ({...p, [rule.id]: !isExpanded}))}
                      >
@@ -1749,10 +1763,10 @@ const AuditLivePage = ({
                                 <div className="text-[10px] text-slate-500/50 flex items-center font-black w-12 shrink-0 h-10 flex items-center justify-start"><Loader2 className="w-3.5 h-3.5 animate-spin" /></div>
                              ) : (
                                 <span className={cn("text-[16px] font-black uppercase tracking-tight w-12 shrink-0 flex items-center justify-start",
-                                  consistencyMap[rule.id] === 'Matched' ? ((userValue === 'Yes' || userValue === 'Y') ? 'text-emerald-700' : 'text-red-700') :
-                                    consistencyMap[rule.id] === 'Mismatched' ? ((userValue === 'Yes' || userValue === 'Y') ? 'text-red-700' : 'text-emerald-700') : 'text-slate-600')}>
-                                  {consistencyMap[rule.id] === 'Matched' ? ((userValue === 'Yes' || userValue === 'Y') ? 'Y' : 'N') :
-                                    consistencyMap[rule.id] === 'Mismatched' ? ((userValue === 'Yes' || userValue === 'Y') ? 'N' : 'Y') : 'N/A'}
+                                  consistencyMap[rule.id] === 'Match' ? ((userValue === 'Yes' || userValue === 'Y') ? 'text-emerald-700' : 'text-red-700') :
+                                    consistencyMap[rule.id] === 'Mismatch' ? ((userValue === 'Yes' || userValue === 'Y') ? 'text-red-700' : 'text-emerald-700') : 'text-slate-600')}>
+                                  {consistencyMap[rule.id] === 'Match' ? ((userValue === 'Yes' || userValue === 'Y') ? 'Y' : 'N') :
+                                    consistencyMap[rule.id] === 'Mismatch' ? ((userValue === 'Yes' || userValue === 'Y') ? 'N' : 'Y') : '?'}
                                </span>
                              )}
                            </div>
@@ -1766,7 +1780,7 @@ const AuditLivePage = ({
                              ) : (
                                <div className={cn(
                                  "flex items-center justify-start gap-2 text-[15px] font-black uppercase tracking-wider w-24 shrink-0 h-10",
-                                 status === 'Matched' ? "text-emerald-700" : status === 'Mismatched' ? "text-red-700" : "text-slate-600"
+                                 status === 'Match' ? "text-emerald-700" : status === 'Mismatch' ? "text-red-700" : "text-slate-600"
                                )}>
                                  {status}
                                </div>
@@ -1781,12 +1795,12 @@ const AuditLivePage = ({
                          </div>
                        </div>
                        
-                       {status === 'Mismatched' && !isWaiting && ruleResults[0] && (
+                      {status === 'Mismatch' && !isWaiting && ruleResults[0] && (
                          <div className="px-10 pb-5 w-full">
                            <div className="p-4 bg-red-600/5 border border-red-500/10 rounded-xl flex items-start gap-4 animate-fadeIn">
                              <AlertCircle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" strokeWidth={2} />
                              <div className="flex-1 min-w-0">
-                               <span className="text-[11px] font-black text-red-700 uppercase tracking-tighter block mb-1">Mismatched Detected</span>
+                              <span className="text-[11px] font-black text-red-700 uppercase tracking-tighter block mb-1">Mismatch Detected</span>
                                <p className="text-[13px] text-red-950/90 leading-relaxed font-semibold">
                                  {(extractSection(ruleResults[0].reason, 'Summary') || ruleResults[0].reason.split('\n').find(line => line.trim().length > 0 && !line.startsWith('Status:') && !line.startsWith('User Configuration:')) || "").replace(/^\s*(?:- \*\*|- |### |\* |-)?\s*(?:\*\*)?Summary(?:\*\*)?\s*:\s*/i, '').trim()}
                                </p>

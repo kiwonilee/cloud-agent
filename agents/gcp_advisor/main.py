@@ -194,18 +194,16 @@ async def stream_evaluate(req: EvaluateRequest):
                 try:
                     eval_text = await run_agent_stateless(evaluator_agent, eval_prompt, f"{req.session_id}_{item_id}_eval")
                     
-                    status = "Matched"  # Default
+                    status = "Match"  # Default
                     upper_text = eval_text.upper()
-                    if "MISMATCHED" in upper_text or "FAIL" in upper_text or "NOT APPLIED" in upper_text or "NOT_APPLIED" in upper_text:
-                        status = "Mismatched"
-                    elif "UNDER_REVIEW" in upper_text or "UNDER REVIEW" in upper_text or "WARN" in upper_text:
-                        status = "Under Review"
-                    elif "N.A" in upper_text or "N/A" in upper_text:
-                        status = "N/A"
-                    elif "MATCHED" in upper_text or "PASS" in upper_text or "PASSED" in upper_text:
-                        status = "Matched"
+                    if "MISMATCH" in upper_text or "FAIL" in upper_text:
+                        status = "Mismatch"
+                    elif "SKIPPED" in upper_text or "?" in upper_text:
+                        status = "Skipped"
+                    elif "MATCH" in upper_text or "PASS" in upper_text:
+                        status = "Match"
                     
-                    if status in ["Mismatched", "WARNING", "Under Review"]:
+                    if status in ["Mismatch", "WARNING", "Under Review"]:
                         await queue.put(f"data: {json.dumps({'type': 'status', 'agent': 'remediator', 'rule_id': item_id, 'message': f'Invoking Agent 3 for Remediation on {item_id}...'})}\n\n")
                         
                         rem_prompt = (
@@ -297,14 +295,16 @@ def get_checklist():
             reader = csv.reader(f)
             for idx, row in enumerate(reader):
                 if len(row) >= 3:
-                    checklist_data.append({
-                        "id": f"rule_{idx + 1}",
-                        "type": row[0].strip(),
-                        "category": row[1].strip(),
-                        "details": row[2].strip(),
-                        "visible": row[3].strip() if len(row) > 3 else "Y",
-                        "default_value": row[4].strip() if len(row) > 4 else "Y"
-                    })
+                    visible = row[3].strip() if len(row) > 3 else "Y"
+                    if visible == "Y":
+                        checklist_data.append({
+                            "id": f"rule_{idx + 1}",
+                            "type": row[0].strip(),
+                            "category": row[1].strip(),
+                            "details": row[2].strip(),
+                            "visible": visible,
+                            "default_value": row[4].strip() if len(row) > 4 else "Y"
+                        })
     except Exception as e:
         logger.error(f"Failed to read CSV checklist: {e}")
         return []

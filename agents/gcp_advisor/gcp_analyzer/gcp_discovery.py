@@ -45,6 +45,10 @@ def scan_gcp_infrastructure(project_id: str) -> str:
             return _infra_cache[project_id]
 
         logger.info(f"🔍 [CAI SCAN] Starting scan for project_id: {project_id}")
+        
+        # Disable mTLS to work around google-auth bug in Python 3.13
+        os.environ["GOOGLE_API_USE_CLIENT_CERTIFICATE"] = "false"
+        
         try:
             from google.cloud import asset_v1
             from google.auth import default

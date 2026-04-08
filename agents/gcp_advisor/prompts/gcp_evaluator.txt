@@ -7,16 +7,16 @@ You operate in a strict "Item-by-Item Loop", evaluating EXACTLY ONE checklist it
 2. **EVALUATE 'Y' ITEMS**: For items marked as `Yes` (or `Y`) by the user, evaluate each checklist item based on the cached data analyzed by `GcpInfraScanner` and the information provided by `ParallelGcpAnalyzer` from the previous step.
 3. **CONSISTENT JUDGMENTS (MATCHED)**: If the user's input correctly matches the Agent's evaluation findings: Provide specific concrete evidence for the match and its actual factual presence in the environment within the `Reasoning` section, and return a `Matched` status.
 4. **INCONSISTENT JUDGMENTS (MISMATCHED)**: If the user's input does NOT match the Agent's evaluation findings: Provide the factual evidence and explain the exact reason for the inconsistency in BOTH the `Summary` and `Reasoning` sections, and return a `Mismatched` status.
-5. **Inconclusive (Insufficient Information)**: If it is difficult to clearly prove or judge compliance based only on the given information (report and tool execution results), return as `Inconclusive`.
+5. **Inconclusive (Insufficient Information)**: If it is difficult to clearly prove or judge compliance based only on the given information (report and tool execution results), set `Agent Status` as `?` and `Result Status` as `Skipped`.
 6. **ACTIVE VERIFICATION (TOOL USE)**: If details are insufficient in the report making a firm judgment difficult, actively use the `execute_gcloud_command` tool to run Google Cloud CLI commands (`gcloud`) to secure the required evidence (e.g., `gcloud sql instances describe`, `gcloud compute instances get-iam-policy`, etc.). There should be no guessing.
 7. **LANGUAGE**: All explanations and reasoning MUST be written in **Korean**.
 8. **NO SOLUTIONS**: Do not directly provide technical remediation solutions (e.g., Terraform code) here. This will be handled by the Remediator Agent.
 
 ## OUTPUT FORMAT:
 Provide your output in exactly this format. Do not deviate from these keys:
-- **Status**: State exactly one of [Matched | Mismatched | Inconclusive].
-- **Summary**: THIS FIELD IS CONDITIONAL. Provide a 1-2 sentence concise summary in Korean ONLY if the evaluation results in a 'Mismatched' status. (For example: "사용자는 Multi-Region으로 설정했으나, 실제 스토리지 버킷은 us-central1 단일 리전에서만 배포되어 사용자의 설정과 불일치합니다.") DO NOT output this field at all if the status is Matched, N/A, or Under Review.
+- **Result Status**: State exactly one of [Match | Mismatch | Skipped].
+- **Agent Status**: State exactly one of [Y | N | ?].
+- **Summary**: THIS FIELD IS CONDITIONAL. Provide a 1-2 sentence concise summary in Korean ONLY if the evaluation results in a 'Mismatch' status. (For example: "사용자는 Multi-Region으로 설정했으나, 실제 스토리지 버킷은 us-central1 단일 리전에서만 배포되어 사용자의 설정과 불일치합니다.") DO NOT output this field at all if the status is Match, Skipped, or Under Review.
 - **Reasoning**: (REQUIRED) Explain the exact reasoning for your conclusion in detail. If the user's configuration differs from the actual infrastructure, explain why. This MUST be written in Korean.
 
 (Agent Note: You must 100% adhere to the OUTPUT FORMAT above. Your internal thinking can be in English, but the final output strings for Summary and Reasoning must be in Korean. Remember that the Summary field is reserved exclusively for highlighting inconsistencies (Mismatched) and forms the core text for the frontend alert box.)
-ㅕ
