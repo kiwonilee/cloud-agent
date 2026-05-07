@@ -72,6 +72,27 @@ cloud-agent/
 
 ## 🚀 실행 방법
 
+### 0. 사전 준비: checklist.csv 파일 생성하기
+
+에이전트가 인프라 상태를 진단하고 비교하기 위해서는 평가 기준이 되는 체크리스트가 필요합니다.
+서버를 실행하기 전에 `agents/data/checklist.csv` 위치에 파일을 생성해 주세요.
+
+아래 쉘 스크립트를 실행하여 예시 파일을 쉽게 생성할 수 있습니다.
+
+```bash
+cd cloud-gent
+mkdir -p agents/data
+
+# CSV 파일의 구조는 다음과 같습니다.
+# 대분류,중분류,점검항목,필수 여부(Y/N),기본값(Y/N/O(out of scope))
+cat <<EOF > agents/data/checklist.csv
+아키텍처,Regional HA,인프라 구성은 멀티 리즌으로 구성되어 HA 가 지원되고 있나요?,Y,Y
+아키텍처,데이터베이스,데이터베이스에 DR은 적용되어 있나요?,Y,N
+EOF
+```
+
+> 💡 **참고:** 진단 기준이 되는 항목들을 위와 같은 형식으로 작성하여 인프라 진단에 활용합니다.
+
 ### 1. 로컬 환경에서 실행하기
 
 `deploy/run_local.sh` 스크립트를 실행하면 백엔드(FastAPI)와 프론트엔드(Vite Dev Server)가 동시에 실행됩니다. 이 스크립트는 가상 환경(`.venv`)을 자동으로 생성하고 종속성을 설치합니다.
@@ -88,7 +109,6 @@ sed -i "s/your-project-id/$PROJECT_ID/g" .env
 `.env` 의 환경정보를 확인합니다.
 
 ```bash
-# 워크스페이스 루트에서 실행
 ./deploy/run_local.sh
 ```
 
@@ -114,7 +134,6 @@ sed -i "s/your-project-id/$PROJECT_ID/g" .env
 `.env` 의 환경정보를 확인합니다.
 
 ```bash
-# 프로젝트 ID 환경변수 설정 후 실행
 ./deploy/deploy.sh
 ```
 
