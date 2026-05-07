@@ -137,6 +137,26 @@ sed -i "s/your-project-id/$PROJECT_ID/g" .env
 ./deploy/deploy.sh
 ```
 
+다음과 같이 Cloud Run 에 Agent 과 frontend 가 배포됩니다.
+```bash
+$ gcloud run services list
+✔
+SERVICE: cloud-agent
+REGION: us-central1
+URL: https://cloud-agent-874779727983.us-central1.run.app
+LAST DEPLOYED BY: student-02-1dc482018a51@qwiklabs.net
+LAST DEPLOYED AT: 2026-05-07T02:46:09.431413Z
+
+✔
+SERVICE: cloud-frontend
+REGION: us-central1
+URL: https://cloud-frontend-874779727983.us-central1.run.app
+LAST DEPLOYED BY: student-02-1dc482018a51@qwiklabs.net
+LAST DEPLOYED AT: 2026-05-07T02:47:44.780386Z
+```
+
+브라우저를 사용해 Frontend(cloud-frontend) 의 Endpoint 로 접속합니다.
+
 ---
 
 테스트를 위한 인프라 환경 구성
