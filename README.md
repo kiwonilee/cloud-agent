@@ -116,7 +116,7 @@ sed -i "s/your-project-id/$PROJECT_ID/g" .env
 ```bash
 # 프로젝트 ID 환경변수 설정 후 실행
 ./deploy/deploy.sh
-``
+```
 
 ---
 
