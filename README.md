@@ -76,6 +76,17 @@ cloud-agent/
 
 `deploy/run_local.sh` 스크립트를 실행하면 백엔드(FastAPI)와 프론트엔드(Vite Dev Server)가 동시에 실행됩니다. 이 스크립트는 가상 환경(`.venv`)을 자동으로 생성하고 종속성을 설치합니다.
 
+실행 전 루트 디렉토리에 `.env` 파일을 복사하여 필요한 환경변수(예: `PROJECT_ID`)를 설정해야 합니다. (`.env.template` 참조)
+```bash
+export PROJECT_ID="your-project-id"
+```
+
+```bash
+cp .env.template .env
+sed -i "s/your-project-id/$PROJECT_ID/g" .env
+```
+`.env` 의 환경정보를 확인합니다.
+
 ```bash
 # 워크스페이스 루트에서 실행
 ./deploy/run_local.sh
@@ -85,22 +96,29 @@ cloud-agent/
 - **Backend URL**: `http://localhost:8000`
 
 > [!NOTE]
-> 실행 전 루트 디렉토리에 `.env` 파일을 복사하여 필요한 환경변수(예: `PROJECT_ID`)를 설정해야 합니다. (`.env.template` 참조)
 
 ### 2. Google Cloud (Cloud Run)에 배포하기
 
-`deploy/deploy.sh` 스크립트를 사용하여 백엔드와 프론트엔드 모두 Google Cloud Run에 배포할 수 있습니다. 스크립트 내에서 서비스 어카운트 생성, 권한 부여, 빌드 및 배포가 진행됩니다.
+`deploy/deploy.sh` 스크립트를 사용하여 백엔드와 프론트엔드 모두 Google Cloud Run에 배포할 수 있습니다.
+스크립트 내에서 서비스 어카운트 생성, 권한 부여, 빌드 및 배포가 진행됩니다.
+
+실행 전 루트 디렉토리에 `.env` 파일을 복사하여 필요한 환경변수(예: `PROJECT_ID`)를 설정해야 합니다. (`.env.template` 참조)
+```bash
+export PROJECT_ID="your-project-id"
+```
+
+```bash
+cp .env.template .env
+sed -i "s/your-project-id/$PROJECT_ID/g" .env
+```
+`.env` 의 환경정보를 확인합니다.
 
 ```bash
 # 프로젝트 ID 환경변수 설정 후 실행
-export PROJECT_ID="your-project-id"
 ./deploy/deploy.sh
-```
+``
 
 ---
-
-## 📄 기타 사항
-환경 변수 설정 템플릿은 `.env.template`을 참고하세요.
 
 테스트를 위한 인프라 환경 구성
 * https://github.com/GoogleCloudPlatform/terraform-google-three-tier-web-app
