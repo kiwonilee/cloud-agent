@@ -143,16 +143,12 @@ $ gcloud run services list
 ✔
 SERVICE: cloud-agent
 REGION: us-central1
-URL: https://cloud-agent-874779727983.us-central1.run.app
-LAST DEPLOYED BY: student-02-1dc482018a51@qwiklabs.net
-LAST DEPLOYED AT: 2026-05-07T02:46:09.431413Z
+URL: https://cloud-agent-xxxxx.us-central1.run.app
 
 ✔
 SERVICE: cloud-frontend
 REGION: us-central1
-URL: https://cloud-frontend-874779727983.us-central1.run.app
-LAST DEPLOYED BY: student-02-1dc482018a51@qwiklabs.net
-LAST DEPLOYED AT: 2026-05-07T02:47:44.780386Z
+** URL: https://cloud-frontend-xxxxx.us-central1.run.app **
 ```
 
 브라우저를 사용해 Frontend(cloud-frontend) 의 Endpoint 로 접속합니다.
