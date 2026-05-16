@@ -80,7 +80,7 @@ cloud-agent/
 아래 쉘 스크립트를 실행하여 예시 파일을 쉽게 생성할 수 있습니다.
 
 ```bash
-cd cloud-gent
+cd cloud-agent
 mkdir -p agents/data
 
 # CSV 파일의 구조는 다음과 같습니다.
