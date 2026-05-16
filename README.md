@@ -73,7 +73,16 @@ cloud-agent/
 ## 🚀 실행 방법
 
 ### 0. 사전 준비: checklist.csv 파일 생성하기
-
+API 를 활성화 힙니다.
+```bash
+gcloud services enable aiplatform.googleapis.com \
+iam.googleapis.com \
+cloudresourcemanager.googleapis.com \
+cloudtrace.googleapis.com \
+monitoring.googleapis.com \
+logging.googleapis.com \
+telemetry.googleapis.com
+```
 에이전트가 인프라 상태를 진단하고 비교하기 위해서는 평가 기준이 되는 체크리스트가 필요합니다.
 서버를 실행하기 전에 `agents/data/checklist.csv` 위치에 파일을 생성해 주세요.
 
